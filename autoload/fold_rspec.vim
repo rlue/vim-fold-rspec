@@ -1,5 +1,5 @@
 " Public Functions =============================================================
-function! rspec_folding#foldexpr(lnum)
+function! fold_rspec#foldexpr(lnum)
   call s:memoize_landmarks(a:lnum)
 
   if s:an_rspec_block_opens_on(a:lnum)
@@ -9,7 +9,7 @@ function! rspec_folding#foldexpr(lnum)
   endif
 endfunction
 
-function! rspec_folding#foldtext()
+function! fold_rspec#foldtext()
   let fold_stats = '[' . len(filter(range(v:foldstart + 1, v:foldend), "getline(v:val) !~# '^\\(\\W*$\\|\" \\)'")) . ']'
   let first_line = strdisplaywidth(getline(v:foldstart)) < 80 ?
               \ getline(v:foldstart) . repeat(' ', 80 - strdisplaywidth(getline(v:foldstart))) :
@@ -26,7 +26,7 @@ function! s:memoize_landmarks(lnum)
   " (for use by s:the_first_block_opens_before())
   "
   " on subsequent runs,
-  " only repeat the scan if a:lnum <= b:rspec_folding_first_block
+  " only repeat the scan if a:lnum <= b:fold_rspec_first_block
 
   if s:timeout('elapsed?') &&
         \ (a:lnum == 1 || !s:the_first_block_opens_before(a:lnum))
@@ -36,16 +36,16 @@ function! s:memoize_landmarks(lnum)
 endfunction
 
 function! s:the_first_block_opens_before(lnum)
-  return exists('b:rspec_folding_first_block') &&
-        \ a:lnum > b:rspec_folding_first_block
+  return exists('b:fold_rspec_first_block') &&
+        \ a:lnum > b:fold_rspec_first_block
 endfunction
 
 function! s:find_first_block()
-  silent! unlet b:rspec_folding_first_block
+  silent! unlet b:fold_rspec_first_block
 
   for i in range(1, line('$'))
     if s:an_rspec_block_opens_on(i)
-      let b:rspec_folding_first_block = i | break
+      let b:fold_rspec_first_block = i | break
     endif
   endfor
 endfunction
