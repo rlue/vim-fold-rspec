@@ -3,7 +3,7 @@ vim-rspec-folding
 
 This plugin provides automatic folding for RSpec files (`*_spec.rb`).
 
-It depends on strict, consistent, two-space indentation of context and example blocks, and supports Capybara keywords.
+Conforms to RSpec DSL as of v3.6. Depends on strict, consistent, two-space indentation of context and example blocks, and supports Capybara keywords.
 
 Installation
 ------------
