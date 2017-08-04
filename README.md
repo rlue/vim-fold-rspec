@@ -1,4 +1,4 @@
-vim-rspec-folding
+vim-fold-rspec
 =================
 
 This plugin provides automatic folding for RSpec files (`*_spec.rb`).
@@ -16,7 +16,7 @@ Configuration
 To set a default `foldlevel` for RSpec files, add a line like the one below to your `vimrc`:
 
 ```viml
-let g:rspec_folding_default_level = 2
+let g:fold_rspec_default_level = 2
 ```
 
 See `:h 'foldlevel'` for more.
