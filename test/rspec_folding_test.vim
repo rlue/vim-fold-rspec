@@ -4,7 +4,8 @@
 
 " Initialize test data ---------------------------------------------------------
 let s:test_file = expand('%:h') . '/sample_spec.rb'
-let s:test_function = 'rspec_folding#fold_expr'
+let s:plugin_file = expand('%:h:h') . '/ftplugin/ruby.vim'
+let s:test_function = matchstr(filter(readfile(s:plugin_file), 'v:val =~ ''foldexpr''')[0], '''\@<=.*''\@=')
 silent execute '0read ' . s:test_file
 silent execute 'normal '']ma'
 
@@ -13,12 +14,12 @@ let s:foldlevels.actual = copy(s:foldlevels.expected)
 
 " Run test ---------------------------------------------------------------------
 call map(s:foldlevels.actual,
-      \ s:test_function . '(v:key + 1)')
+      \ substitute(s:test_function, 'v:lnum', 'v:key + 1', ''))
 
 let s:results = copy(s:foldlevels.actual)
 call map(s:results, 'v:val == s:foldlevels[''expected''][v:key]')
 
-" Run test ---------------------------------------------------------------------
+" Report results ---------------------------------------------------------------
 if count(s:results, 0) > 0
   let s:test_lines = readfile(s:test_file)
 
