@@ -130,5 +130,5 @@ function! s:stats()
 endfunction
 
 function! s:drop_trailing_do(str)
-  return substitute(str, '\s+do$', '', '')
+  return substitute(a:str, '\s\+do$', '', '')
 endfunction
