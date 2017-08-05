@@ -1,6 +1,8 @@
 " TEST BODY ====================================================================
 " This is a regression test for a custom fold expression.
 " Use `:source %` to run the test.
+"
+" When testing new changes to the plugin, re-source it before running the test.
 
 " Initialize test data ---------------------------------------------------------
 let s:test_file = expand('%:h') . '/sample_spec.rb'
