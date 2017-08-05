@@ -13,7 +13,7 @@ function! fold_rspec#foldtext()
   let s:line = getline(v:foldstart)
   let s:preview_maxwidth = 80 - 1 - (strdisplaywidth(s:stats())) - 2
 
-  let s:preview = s:line[0:(s:preview_maxwidth - 1)]
+  let s:preview = s:drop_trailing_do(s:line)[0:(s:preview_maxwidth - 1)]
   let s:preview = substitute(s:preview, '^\( *\)  ', '\1- ', '')
 
   let s:padding = repeat('-', s:preview_maxwidth - strdisplaywidth(s:preview) + 1)
@@ -127,4 +127,8 @@ function! s:stats()
   " don't count blank lines or comments
   call filter(l:inner_block, "getline(v:val) !~# '^\\(\\W*$\\|\\s*\#\\)'")
   return '[' . len(l:inner_block) . ']'
+endfunction
+
+function! s:drop_trailing_do(str)
+  return substitute(str, '\s+do$', '', '')
 endfunction
