@@ -1,6 +1,6 @@
 " Public Functions =============================================================
 function! fold_rspec#foldexpr(lnum)
-  call s:memoize_landmarks(a:lnum)
+  call s:memoize_where_first_block_is(a:lnum)
 
   if s:an_rspec_block_opens_on(a:lnum)
     return '>' . s:indent_level(a:lnum)
@@ -10,34 +10,40 @@ function! fold_rspec#foldexpr(lnum)
 endfunction
 
 function! fold_rspec#foldtext()
-  let fold_stats = '[' . len(filter(range(v:foldstart + 1, v:foldend), "getline(v:val) !~# '^\\(\\W*$\\|\" \\)'")) . ']'
-  let first_line = strdisplaywidth(getline(v:foldstart)) < 80 ?
-              \ getline(v:foldstart) . repeat(' ', 80 - strdisplaywidth(getline(v:foldstart))) :
-              \ getline(v:foldstart)
-  let truncate_right = strdisplaywidth(fold_stats) + 4
-  return first_line[:(truncate_right * -1)] . ' ' . fold_stats . ' -'
+  let s:line = getline(v:foldstart)
+  let s:preview_maxwidth = 80 - (strdisplaywidth(s:stats())) - 2
+
+  let s:preview = s:line[0:(s:preview_maxwidth - 1)]
+  let s:preview = substitute(s:preview, '^\( *\)  ', '\1- ', '')
+
+  let s:padding = repeat('-', s:preview_maxwidth - strdisplaywidth(s:preview))
+  let s:padding = substitute(s:padding, '\(^.\|.$\)', ' ', 'g')
+
+  return s:preview . s:padding . s:stats() . ' -'
 endfunction
 
 " Helper Functions =============================================================
 
 " foldexpr ---------------------------------------------------------------------
-function! s:memoize_landmarks(lnum)
-  " on first run, scan for the line where the first block begins
-  " (for use by s:the_first_block_opens_before())
+function! s:memoize_where_first_block_is(lnum)
+  " foldexpr is run every time the text is changed —
+  " on the line where the change occurred + the lines directly above/below.
+  " If any of their foldlevels changes, foldexpr is run on every following line.
   "
-  " on subsequent runs,
-  " only repeat the scan if a:lnum <= b:fold_rspec_first_block
+  " This function keeps some document metadata in memory momentarily (1s)
+  " to prevent foldexpr from having to repeat the same scan every time it runs.
+  "
+  " This scan should only occur when the document is first opened,
+  " and again for any changes that could affect the location of the first block.
 
-  if s:timeout('elapsed?') &&
-        \ (a:lnum == 1 || !s:the_first_block_opens_before(a:lnum))
+  if s:timeout('elapsed?') && !s:the_first_block_opens_before(a:lnum)
     call s:find_first_block()
     call s:timeout('reset')
   endif
 endfunction
 
 function! s:the_first_block_opens_before(lnum)
-  return exists('b:fold_rspec_first_block') &&
-        \ a:lnum > b:fold_rspec_first_block
+  return exists('b:fold_rspec_first_block') && a:lnum > b:fold_rspec_first_block
 endfunction
 
 function! s:find_first_block()
@@ -63,12 +69,36 @@ function! s:an_rspec_block_opens_on(lnum)
 endfunction
 
 function! s:an_rspec_block_closes_on(lnum)
+  " If the current line is a block `end`
+  " but the preceding RSpec block heading is at a lower level of indentation,
+  " the current block `end` must belong to a non-RSpec block.
   return s:a_ruby_block_closes_on(a:lnum) &&
-        \ s:rel_indent(s:last_block_boundary(a:lnum, 1), a:lnum) >= 0
+        \ s:rel_indent(s:last_block_heading(a:lnum), a:lnum) >= 0
 endfunction
 
 function! s:a_ruby_block_closes_on(lnum)
   return getline(a:lnum) =~ '^\s*end$'
+endfunction
+
+function! s:last_block_boundary(lnum, ...)
+  " Accepts an optional second argument to specify that the function
+  " should succeed only at the start (or end) of a block. (Start = 1 / End = 2)
+  if a:lnum < 1 | return 0 | endif
+
+  if (!(a:0 && a:1 == 2) && s:an_rspec_block_opens_on(a:lnum)) ||
+        \ (!(a:0 && a:1 == 1) && s:an_rspec_block_closes_on(a:lnum))
+    return a:lnum
+  else
+    return s:last_block_boundary(a:lnum - 1)
+  endif
+endfunction
+
+function! s:last_block_heading(lnum)
+  return s:last_block_boundary(a:lnum, 1)
+endfunction
+
+function! s:indent_level(lnum)
+  return ((match(getline(a:lnum), '\S') / 2) + 1)
 endfunction
 
 function! s:rel_indent(a, b)
@@ -81,23 +111,6 @@ function! s:rel_indent(a, b)
   endif
 endfunction
 
-function! s:indent_level(lnum)
-  return ((match(getline(a:lnum), '\S') / 2) + 1)
-endfunction
-
-" Accepts an optional second argument to specify that the function
-" should succeed only at the start (or end) of a block.
-function! s:last_block_boundary(lnum, ...)
-  if a:lnum < 1 | return 0 | endif
-
-  if (!(a:0 && a:1 == 2) && s:an_rspec_block_opens_on(a:lnum)) ||
-        \ (!(a:0 && a:1 == 1) && s:an_rspec_block_closes_on(a:lnum))
-    return a:lnum
-  else
-    return s:last_block_boundary(a:lnum - 1)
-  endif
-endfunction
-
 function! s:timeout(action)
   if a:action == 'elapsed?'
     return (!exists('s:timeout_marker') || (localtime() - s:timeout_marker > 1))
@@ -107,3 +120,11 @@ function! s:timeout(action)
 endfunction
 
 " foldtext ---------------------------------------------------------------------
+
+function! s:stats()
+  let l:inner_block = range(v:foldstart + 1, prevnonblank(v:foldend) - 1)
+
+  " don't count blank lines or comments
+  call filter(l:inner_block, "getline(v:val) !~# '^\\(\\W*$\\|\#\\)'")
+  return '[' . len(l:inner_block) . ']'
+endfunction
