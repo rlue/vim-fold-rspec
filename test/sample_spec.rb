@@ -22,8 +22,8 @@ RSpec.describe "something" do
 end
 
 RSpec.shared_examples "some example" do |parameter|
-  \# Same behavior is triggered also with either `def something; 'some value'; end`
-  \# or `define_method(:something) { 'some value' }`
+  # Same behavior is triggered also with either `def something; 'some value'; end`
+  # or `define_method(:something) { 'some value' }`
   let(:something) { parameter }
   xit "uses the given parameter" do
     expect(something).to eq(parameter)

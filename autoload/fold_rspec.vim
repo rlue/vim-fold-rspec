@@ -125,6 +125,6 @@ function! s:stats()
   let l:inner_block = range(v:foldstart + 1, prevnonblank(v:foldend) - 1)
 
   " don't count blank lines or comments
-  call filter(l:inner_block, "getline(v:val) !~# '^\\(\\W*$\\|\#\\)'")
+  call filter(l:inner_block, "getline(v:val) !~# '^\\(\\W*$\\|\\s*\#\\)'")
   return '[' . len(l:inner_block) . ']'
 endfunction
