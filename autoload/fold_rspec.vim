@@ -3,9 +3,14 @@ function! fold_rspec#foldexpr(lnum)
   call s:memoize_where_first_block_is(a:lnum)
 
   if s:an_rspec_block_opens_on(a:lnum)
-    return '>' . s:indent_level(a:lnum)
+    return '>' . (s:indent_level(a:lnum) + 1)
   elseif s:the_first_block_opens_before(a:lnum)
-    return s:indent_level(s:last_block_boundary(a:lnum))
+    if s:an_rspec_block_closes_on(prevnonblank(a:lnum))
+      return (s:blank(a:lnum + 1) ? '' : '<') .
+            \ (s:indent_level(s:last_block_boundary(a:lnum)) + 1)
+    elseif s:indent_level(prevnonblank(a:lnum)) > 0
+      return s:indent_level(s:parent_block_heading(a:lnum)) + 1
+    endif
   endif
 endfunction
 
@@ -57,15 +62,20 @@ function! s:find_first_block()
 endfunction
 
 function! s:an_rspec_block_opens_on(lnum)
-  if !exists('s:rspec_keywords')
-    let s:rspec_keywords = ['\(before\|let\|subject\)\((.\+)\)\=',
-          \ 'x\=it', 'it\(_behaves_like\|_should_behave_like\)',
-          \ '\(RSpec\.\)\=\([xf]\=\(describe\|context\)\|example_group\|shared_\(examples\|context\)\)']
-    let s:capybara_keywords = ['feature', 'background', 'scenario', '\(giv\|wh\|th\)en']
+  return (getline(a:lnum) =~ s:block_heading_regex('rspec')) ||
+        \ (getline(a:lnum) =~ s:block_heading_regex('capybara'))
+endfunction
+
+function! s:block_heading_regex(keyword_type)
+  if !exists('s:keywords')
+    let s:keywords = { 'rspec':    ['(before|let|subject)(\(.+\))=', 'x=it',
+          \                         'it(_behaves_like|_should_behave_like)',
+          \                         '(RSpec\.)=([xf]=(describe|context)|example_group|shared_(examples|context))'],
+          \            'capybara': ['feature', 'background', 'scenario',
+          \                         '(giv|wh|th)en(\(.+\))='] }
   endif
 
-  return (getline(a:lnum) =~ '^\s*\(' . join(s:rspec_keywords, '\|') . '\) .*do\( |.\+|\)\=$') ||
-        \ (getline(a:lnum) =~ '^\s*\(\(' . join(s:capybara_keywords[:-2], '\|') . '\) .*do\( |.\+|\)\=\|' . get(s:capybara_keywords, -1) . '.*\)$')
+  return '\v^\s*(' . join(s:keywords[a:keyword_type], '|') . ') .*do( |.+|)=$'
 endfunction
 
 function! s:an_rspec_block_closes_on(lnum)
@@ -89,7 +99,7 @@ function! s:last_block_boundary(lnum, ...)
         \ (!(a:0 && a:1 == 1) && s:an_rspec_block_closes_on(a:lnum))
     return a:lnum
   else
-    return s:last_block_boundary(a:lnum - 1)
+    return s:last_block_boundary(a:lnum - 1, (a:0 ? a:1 : 0))
   endif
 endfunction
 
@@ -97,8 +107,18 @@ function! s:last_block_heading(lnum)
   return s:last_block_boundary(a:lnum, 1)
 endfunction
 
+function! s:parent_block_heading(lnum, ...)
+  let refline = a:0 ? a:1 : a:lnum
+  let last_head = s:last_block_heading(a:lnum - 1)
+  if s:rel_indent(last_head, prevnonblank(refline)) < 0
+    return last_head
+  else
+    return s:parent_block_heading(last_head, refline)
+  endif
+endfunction
+
 function! s:indent_level(lnum)
-  return ((match(getline(a:lnum), '\S') / 2) + 1)
+  return (match(getline(a:lnum), '\S') / 2)
 endfunction
 
 function! s:rel_indent(a, b)
@@ -109,6 +129,10 @@ function! s:rel_indent(a, b)
   else
     return s:indent_level(a:a) > s:indent_level(a:b)
   endif
+endfunction
+
+function! s:blank(lnum)
+  return empty(getline(a:lnum))
 endfunction
 
 function! s:timeout(action)
@@ -130,5 +154,5 @@ function! s:stats()
 endfunction
 
 function! s:drop_trailing_do(str)
-  return substitute(a:str, '\s\+do$', '', '')
+  return substitute(a:str, '\s\+do\( |.\+|\)\=$', '', '')
 endfunction
