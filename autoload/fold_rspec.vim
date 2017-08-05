@@ -11,12 +11,12 @@ endfunction
 
 function! fold_rspec#foldtext()
   let s:line = getline(v:foldstart)
-  let s:preview_maxwidth = 80 - (strdisplaywidth(s:stats())) - 2
+  let s:preview_maxwidth = 80 - 1 - (strdisplaywidth(s:stats())) - 2
 
   let s:preview = s:line[0:(s:preview_maxwidth - 1)]
   let s:preview = substitute(s:preview, '^\( *\)  ', '\1- ', '')
 
-  let s:padding = repeat('-', s:preview_maxwidth - strdisplaywidth(s:preview))
+  let s:padding = repeat('-', s:preview_maxwidth - strdisplaywidth(s:preview) + 1)
   let s:padding = substitute(s:padding, '\(^.\|.$\)', ' ', 'g')
 
   return s:preview . s:padding . s:stats() . ' -'
