@@ -77,6 +77,14 @@ let g:fold_rspec_default_level = 2
 
 See `:h 'foldlevel'` for more.
 
+To disable folding by default for Rspec files, add a line like the one below to your `vimrc`:
+
+```viml
+let g:fold_rspec_default_enable = 0
+```
+
+See `:h 'foldenable'` for more.
+
 License
 -------
 

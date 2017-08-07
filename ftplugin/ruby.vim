@@ -1,5 +1,9 @@
 if expand('%:t:r') =~ '_spec$'
-  let &l:foldenable = 1
+  if exists('g:fold_rspec_default_enable')
+    let &l:foldenable = g:fold_rspec_default_enable
+  else
+    let &l:foldenable = 1
+  endif
   if exists('g:fold_rspec_default_level')
     let &l:foldlevel  = g:fold_rspec_default_level
   endif
