@@ -5,11 +5,12 @@ function! fold_rspec#foldexpr(lnum)
   if s:an_rspec_block_opens_on(a:lnum)
     return '>' . (s:indent_level(a:lnum) + 1)
   elseif s:the_first_block_opens_before(a:lnum)
-    if s:an_rspec_block_closes_on(prevnonblank(a:lnum))
+    let l:pnb = prevnonblank(a:lnum)
+    if s:an_rspec_block_closes_on(l:pnb)
       return (s:blank(a:lnum + 1) ? '' : '<') .
             \ (s:indent_level(s:last_block_boundary(a:lnum)) + 1)
-    elseif s:indent_level(prevnonblank(a:lnum)) > 0
-      return s:indent_level(s:parent_block_heading(a:lnum)) + 1
+    elseif (s:indent_level(l:pnb) > 0) || s:an_rspec_block_opens_on(l:pnb)
+      return s:indent_level(Parent_block_heading(a:lnum)) + 1
     endif
   endif
 endfunction
@@ -107,13 +108,14 @@ function! s:last_block_heading(lnum)
   return s:last_block_boundary(a:lnum, 1)
 endfunction
 
-function! s:parent_block_heading(lnum, ...)
+function! Parent_block_heading(lnum, ...)
   let refline = a:0 ? a:1 : a:lnum
   let last_head = s:last_block_heading(a:lnum - 1)
-  if s:rel_indent(last_head, prevnonblank(refline)) < 0
+  if s:rel_indent(last_head, prevnonblank(refline)) < 0 ||
+        \ s:rel_indent(last_head, nextnonblank(refline)) < 0
     return last_head
   else
-    return s:parent_block_heading(last_head, refline)
+    return Parent_block_heading(last_head, refline)
   endif
 endfunction
 
