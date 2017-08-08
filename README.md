@@ -69,21 +69,15 @@ There are lots of vim plugin managers out there. I like [vim-plug](https://githu
 Configuration
 -------------
 
-To set a default `foldlevel` for RSpec files, add a line like the one below to your `vimrc`:
+By default, vim-fold-rspec honors global fold settings (_e.g.,_ `'foldenable'`, `'foldlevel'`, `'foldcolumn'`). To override these settings and define special folding behavior for RSpec files, modify the appropriate lines below and add them to your `.vimrc`.
 
 ```viml
-let g:fold_rspec_default_level = 2
+let g:fold_rspec_foldenable = 0      " disables folding (toggle with `zi`)
+let g:fold_rspec_foldlevel = 2       " sets initial open/closed state of all folds (open unless nested more than two levels deep)
+let g:fold_rspec_foldcolumn = 4      " shows a 4-character column on the lefthand side of the window displaying the document's fold structure
+let g:fold_rspec_foldclose = 'all'   " closes folds automatically when the cursor is moved out of them (only applies to folds deeper than 'foldlevel')
+let g:fold_rspec_foldminlines = 3    " disables closing of folds containing two lines or fewer
 ```
-
-See `:h 'foldlevel'` for more.
-
-To disable folding by default for Rspec files, add a line like the one below to your `vimrc`:
-
-```viml
-let g:fold_rspec_default_enable = 0
-```
-
-See `:h 'foldenable'` for more.
 
 License
 -------
