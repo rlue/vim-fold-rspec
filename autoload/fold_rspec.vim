@@ -69,11 +69,12 @@ endfunction
 
 function! s:block_heading_regex(keyword_type)
   if !exists('s:keywords')
-    let s:keywords = { 'rspec':    ['(before|let|subject)(\(.+\))=', 'x=it',
-          \                         'it(_behaves_like|_should_behave_like)',
+    let s:keywords = { 'rspec':    ['(before|after|let|subject)(\(.+\))=',
+          \                         'x=it(_behaves_like|_should_behave_like)=',
           \                         '(RSpec\.)=([xf]=(describe|context)|example_group|shared_(examples|context))'],
-          \            'capybara': ['feature', 'background', 'scenario',
-          \                         '(giv|wh|th)en(\(.+\))='] }
+          \            'capybara': ['(background|(giv|wh|th)en)(\(.+\))=',
+          \                         'x=scenario',
+          \                         '(RSpec\.)=([xf]=(feature))'] }
   endif
 
   return '\v^\s*(' . join(s:keywords[a:keyword_type], '|') . ') .*do( |.+|)=$'
