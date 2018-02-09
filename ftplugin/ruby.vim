@@ -10,7 +10,7 @@ if expand('%:t:r') =~ '_spec$'
     let &l:foldlevel  = g:fold_rspec_default_foldcolumn
   endif
   if exists('g:fold_rspec_foldenable')
-    let &l:foldenable = g:fold_rspec_enable
+    let &l:foldenable = g:fold_rspec_foldenable
   endif
   if exists('g:fold_rspec_foldlevel')
     let &l:foldlevel  = g:fold_rspec_foldlevel
