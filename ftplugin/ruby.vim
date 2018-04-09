@@ -4,10 +4,10 @@ if expand('%:t:r') =~ '_spec$'
   let &l:foldtext   = 'fold_rspec#foldtext()'
 
   if exists('g:fold_rspec_foldclose')
-    let &l:foldenable = g:fold_rspec_foldclose
+    let &l:foldclose = g:fold_rspec_foldclose
   endif
   if exists('g:fold_rspec_default_foldcolumn')
-    let &l:foldlevel  = g:fold_rspec_default_foldcolumn
+    let &l:foldcolumn  = g:fold_rspec_default_foldcolumn
   endif
   if exists('g:fold_rspec_foldenable')
     let &l:foldenable = g:fold_rspec_foldenable
@@ -16,6 +16,6 @@ if expand('%:t:r') =~ '_spec$'
     let &l:foldlevel  = g:fold_rspec_foldlevel
   endif
   if exists('g:fold_rspec_foldminlines')
-    let &l:foldenable = g:fold_rspec_foldminlines
+    let &l:foldminlines = g:fold_rspec_foldminlines
   endif
 endif
