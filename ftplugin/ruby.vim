@@ -1,8 +1,10 @@
 if expand('%:t:r') =~ '_spec$'
   let &l:foldmethod = 'expr'
   let &l:foldexpr   = 'fold_rspec#foldexpr(v:lnum)'
-  let &l:foldtext   = 'fold_rspec#foldtext()'
 
+  if !exists('g:fold_rspec_enhanced_foldtext') || (exists('g:fold_rspec_enhanced_foldtext') && g:fold_rspec_enhanced_foldtext != 0)
+    let &l:foldtext   = 'fold_rspec#foldtext()'
+  endif
   if exists('g:fold_rspec_foldclose')
     let &l:foldclose = g:fold_rspec_foldclose
   endif
